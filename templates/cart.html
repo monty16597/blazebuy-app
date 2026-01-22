@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h2 class="text-3xl font-bold mb-6">Your Cart</h2>
+
+    <div id="empty-msg" class="hidden text-center py-10">
+        <p class="text-gray-500 text-lg">Your cart is empty.</p>
+        <a href="{{ url_for('shop') }}" class="text-blaze hover:underline mt-2 inline-block">Go Shopping</a>
+    </div>
+
+    <div id="cart-container" class="bg-white shadow-md rounded-lg overflow-hidden hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Price
+                    </th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action
+                    </th>
+                </tr>
+            </thead>
+            <tbody id="cart-items" class="bg-white divide-y divide-gray-200">
+            </tbody>
+            <tfoot class="bg-gray-50">
+                <tr>
+                    <td class="px-6 py-4 font-bold text-gray-900">Total</td>
+                    <td id="cart-total" class="px-6 py-4 text-right font-bold text-blaze">$0</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="p-6 bg-gray-50 border-t flex justify-end">
+            <button id="clear-btn" onclick="clearCart()"
+                class="text-red-500 font-medium px-6 py-2 mr-4 hover:text-red-700">Clear Cart</button>
+            <button id="checkout-btn" onclick="checkout()"
+                class="bg-blaze hover:bg-orange-700 text-white font-bold py-3 px-8 rounded shadow-lg transition transform hover:scale-105">
+                Checkout (Heavy Process)
+            </button>
+        </div>
+    </div>
+
+    <div id="loading" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-lg shadow-xl text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blaze mx-auto mb-4"></div>
+            <h3 class="text-xl font-bold">Processing Order...</h3>
+            <p class="text-gray-500 text-sm mt-2">Running encryption & inventory logic</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    function renderCart() {
+        const cart = JSON.parse(localStorage.getItem('blazeCart')) || [];
+        const container = document.getElementById('cart-container');
+        const emptyMsg = document.getElementById('empty-msg');
+        const tbody = document.getElementById('cart-items');
+        const totalEl = document.getElementById('cart-total');
+
+        if (cart.length === 0) {
+            container.classList.add('hidden');
+            emptyMsg.classList.remove('hidden');
+            return;
+        }
+
+        container.classList.remove('hidden');
+        emptyMsg.classList.add('hidden');
+        tbody.innerHTML = '';
+
+        let total = 0;
+        cart.forEach((item, index) => {
+            total += item.price;
+            const row = `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">${item.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">$${item.price}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button onclick="removeItem(${index})" class="text-red-600 hover:text-red-900">Remove</button>
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+
+        totalEl.innerText = '$' + total;
+    }
+
+    function removeItem(index) {
+        let cart = JSON.parse(localStorage.getItem('blazeCart'));
+        cart.splice(index, 1);
+        localStorage.setItem('blazeCart', JSON.stringify(cart));
+        renderCart();
+        updateBadge();
+    }
+
+    function clearCart() {
+        localStorage.removeItem('blazeCart');
+        renderCart();
+        updateBadge();
+    }
+
+    async function checkout() {
+        const cart = JSON.parse(localStorage.getItem('blazeCart'));
+        if (!cart || cart.length === 0) return;
+
+        // Show loading spinner
+        document.getElementById('loading').classList.remove('hidden');
+
+        // Calculate total
+        const total = cart.reduce((sum, item) => sum + item.price, 0);
+
+        try {
+            const response = await fetch('/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ items: cart, total: total })
+            });
+
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                localStorage.removeItem('blazeCart');
+                window.location.href = "{{ url_for('orders') }}";
+            } else {
+                alert('Error: ' + result.message);
+                document.getElementById('loading').classList.add('hidden');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Checkout failed');
+            document.getElementById('loading').classList.add('hidden');
+        }
+    }
+
+    renderCart();
+</script>
+{% endblock %}

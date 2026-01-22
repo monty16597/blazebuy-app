@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="flex min-h-[80vh] flex-col justify-center px-6 lg:px-8">
+
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 class="mt-10 text-center text-3xl font-bold leading-9 tracking-tight text-gray-900">Create a new account
+        </h2>
+        <p class="mt-2 text-center text-sm text-gray-600">
+            Join BlazeBuy and experience high-load shopping.
+        </p>
+    </div>
+
+    <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-[480px]">
+        <div class="bg-white px-6 py-12 shadow-lg rounded-lg sm:px-12 border border-gray-100">
+            <form class="space-y-6" method="POST">
+
+                <div class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+                    <div>
+                        <label for="fname" class="block text-sm font-medium leading-6 text-gray-900">First Name</label>
+                        <div class="mt-2">
+                            <input type="text" name="fname" id="fname" required
+                                class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blaze sm:text-sm sm:leading-6 pl-3">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="lname" class="block text-sm font-medium leading-6 text-gray-900">Last Name</label>
+                        <div class="mt-2">
+                            <input type="text" name="lname" id="lname" required
+                                class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blaze sm:text-sm sm:leading-6 pl-3">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="username" class="block text-sm font-medium leading-6 text-gray-900">Username</label>
+                    <div class="mt-2">
+                        <input id="username" name="username" type="text" required
+                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blaze sm:text-sm sm:leading-6 pl-3">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-medium leading-6 text-gray-900">Password</label>
+                    <div class="mt-2">
+                        <input id="password" name="password" type="password" required
+                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blaze sm:text-sm sm:leading-6 pl-3">
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit"
+                        class="flex w-full justify-center rounded-md bg-blaze px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-orange-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blaze transition-colors duration-200">
+                        Sign Up
+                    </button>
+                </div>
+            </form>
+
+            <p class="mt-10 text-center text-sm text-gray-500">
+                Already have an account?
+                <a href="{{ url_for('login') }}" class="font-semibold leading-6 text-blaze hover:text-orange-700">Log
+                    in</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

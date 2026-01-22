@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h2 class="text-3xl font-bold mb-6">Order History</h2>
+
+    {% if orders %}
+    <div class="space-y-6">
+        {% for order in orders %}
+        <div class="bg-white shadow rounded-lg overflow-hidden border border-gray-100">
+            <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                <div>
+                    <p class="text-sm text-gray-500">Order ID: <span class="font-mono text-xs text-gray-800">{{
+                            order['order_id'] }}</span></p>
+                    <p class="text-xs text-gray-400">{{ order['timestamp'] }}</p>
+                </div>
+                <div class="text-lg font-bold text-green-600">
+                    Total: ${{ order['total_price'] }}
+                </div>
+            </div>
+            <div class="px-6 py-4">
+                <ul class="divide-y divide-gray-100">
+                    {% for item in order['items'] %}
+                    <li class="py-2 flex justify-between">
+                        <span class="text-gray-800">{{ item.name }}</span>
+                        <span class="text-gray-500">${{ item.price }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white shadow rounded-lg p-10 text-center">
+        <p class="text-gray-500 text-lg">You haven't purchased anything yet.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
