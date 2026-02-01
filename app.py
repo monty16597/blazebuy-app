@@ -34,20 +34,21 @@ ORDERS_TABLE = 'BlazeBuyOrders'
 
 
 def init_db():
-    """Create DynamoDB tables if they don't exist."""
+    """Create DynamoDB tables if they don't exist and wait for them to be active."""
     try:
         existing_tables = [t.name for t in dynamodb.tables.all()]
 
         if USERS_TABLE not in existing_tables:
-            dynamodb.create_table(
+            table = dynamodb.create_table(
                 TableName=USERS_TABLE,
                 KeySchema=[{'AttributeName': 'username', 'KeyType': 'HASH'}],
                 AttributeDefinitions=[{'AttributeName': 'username', 'AttributeType': 'S'}],
                 ProvisionedThroughput={'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
             )
+            table.wait_until_exists()
 
         if ORDERS_TABLE not in existing_tables:
-            dynamodb.create_table(
+            table = dynamodb.create_table(
                 TableName=ORDERS_TABLE,
                 KeySchema=[
                     {'AttributeName': 'username', 'KeyType': 'HASH'},
@@ -59,6 +60,7 @@ def init_db():
                 ],
                 ProvisionedThroughput={'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
             )
+            table.wait_until_exists()
     except Exception as e:
         raise Exception("ERROR initializing database: %s", e)
 
