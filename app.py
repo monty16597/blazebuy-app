@@ -9,6 +9,7 @@ from datetime import datetime
 from boto3.dynamodb.conditions import Key
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from werkzeug.exceptions import BadRequestKeyError
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 
 app = Flask(__name__)
@@ -162,23 +163,34 @@ def signup():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """Handle user login."""
     if request.method == 'POST':
         try:
-            username = request.form['usernaem']
+            username = request.form['username']
             password = request.form['password']
-
+        except BadRequestKeyError as e:
+            return jsonify({'status': 'error', 'message': 'Missing username or password'}), 400
+        try:
             response = users_table.get_item(Key={'username': username})
             if 'Item' in response:
                 user_data = response['Item']
                 if check_password_hash(user_data['password'], password):
-                    user = User(user_data['username'], user_data['first_name'], user_data['last_name'])
+                    user = User(
+                        username=user_data['username'],
+                        first_name=user_data['first_name'],
+                        last_name=user_data['last_name']
+                    )
                     login_user(user)
-                    return redirect(url_for('shop'))
+                    return redirect(url_for('index'))
 
-            flash('Invalid Credentials', 'danger')
+            flash('Invalid username or password', 'danger')
+            return redirect(url_for('login'))
+
         except Exception as e:
             raise Exception("ERROR during login: %s", e)
+
     return render_template('login.html')
+
 
 
 @app.route('/shop')
