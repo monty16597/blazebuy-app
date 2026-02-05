@@ -1,3 +1,4 @@
+
 import os
 import time
 import math
@@ -165,8 +166,21 @@ def signup():
 def login():
     if request.method == 'POST':
         try:
-            username = request.form['username']
-            password = request.form['password']
+            # Handle both form and JSON data to prevent BadRequestKeyError
+            if request.is_json:
+                data = request.get_json()
+                username = data.get('username')
+                password = data.get('password')
+            else:
+                username = request.form.get('username')
+                password = request.form.get('password')
+
+            # Explicitly check for missing credentials
+            if not username or not password:
+                flash('Username or password not provided.', 'danger')
+                logger.warning("Login attempt with missing username or password.")
+                # Return here to prevent further processing
+                return render_template('login.html')
 
             response = users_table.get_item(Key={'username': username})
             if 'Item' in response:
@@ -175,15 +189,14 @@ def login():
                     user = User(user_data['username'], user_data['first_name'], user_data['last_name'])
                     login_user(user)
                     return redirect(url_for('shop'))
-            
+
             flash('Invalid Credentials', 'danger')
 
-        except BadRequestKeyError:
-            flash('Username or password not provided.', 'danger')
-            logger.warning("Login attempt with missing username or password.")
         except Exception as e:
-            raise Exception("ERROR during login: %s", e)
-            
+            # Catch any other unexpected errors without crashing
+            logger.exception("ERROR during login: %s", e)
+            flash('An unexpected error occurred during login.', 'danger')
+
     return render_template('login.html')
 
 
