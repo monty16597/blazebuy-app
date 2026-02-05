@@ -7,6 +7,7 @@ import logging
 import multiprocessing
 from datetime import datetime
 from boto3.dynamodb.conditions import Key
+from werkzeug.exceptions import BadRequestKeyError
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -164,7 +165,7 @@ def signup():
 def login():
     if request.method == 'POST':
         try:
-            username = request.form['usernaem']
+            username = request.form['username']
             password = request.form['password']
 
             response = users_table.get_item(Key={'username': username})
@@ -174,10 +175,15 @@ def login():
                     user = User(user_data['username'], user_data['first_name'], user_data['last_name'])
                     login_user(user)
                     return redirect(url_for('shop'))
-
+            
             flash('Invalid Credentials', 'danger')
+
+        except BadRequestKeyError:
+            flash('Username or password not provided.', 'danger')
+            logger.warning("Login attempt with missing username or password.")
         except Exception as e:
             raise Exception("ERROR during login: %s", e)
+            
     return render_template('login.html')
 
 
