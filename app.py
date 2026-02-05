@@ -211,19 +211,19 @@ def checkout():
             return jsonify({'status': 'error', 'message': 'Cart is empty'}), 400
 
         # --- 1. TRIGGER MASSIVE CPU LOAD ---
-        # Duration: 600 seconds (10 minutes)
-        duration = 600
+        # # Duration: 600 seconds (10 minutes)
+        # duration = 600
 
-        # Determine how many CPUs exist in the environment
-        # In Docker, this usually returns the host's CPU count unless restricted
-        cpu_count = multiprocessing.cpu_count()
+        # # Determine how many CPUs exist in the environment
+        # # In Docker, this usually returns the host's CPU count unless restricted
+        # cpu_count = multiprocessing.cpu_count()
 
-        logger.info("Spawning %s processes to stress all cores for %s seconds...", cpu_count, duration)
+        # logger.info("Spawning %s processes to stress all cores for %s seconds...", cpu_count, duration)
 
-        # Spawn one process per core to ensure 100% utilization across the board
-        for i in range(cpu_count):
-            p = multiprocessing.Process(target=process_payment_heavy_load, args=(duration, i))
-            p.start()
+        # # Spawn one process per core to ensure 100% utilization across the board
+        # for i in range(cpu_count):
+        #     p = multiprocessing.Process(target=process_payment_heavy_load, args=(duration, i))
+        #     p.start()
 
         # --- 2. Save Order to DynamoDB ---
         order_id = str(uuid.uuid4())
@@ -237,7 +237,7 @@ def checkout():
             'total_price': str(total_price)
         })
 
-        return jsonify({'status': 'success', 'order_id': order_id, 'load_info': f'Spawned {cpu_count} CPU stressors'})
+        return jsonify({'status': 'success', 'order_id': order_id, 'load_info': f'CPU stress test disabled.'})
     except Exception as e:
         raise Exception("ERROR during checkout: %s", e)
 
