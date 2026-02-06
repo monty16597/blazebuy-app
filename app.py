@@ -164,7 +164,7 @@ def signup():
 def login():
     if request.method == 'POST':
         try:
-            username = request.form['usernaem']
+            username = request.form['username']
             password = request.form['password']
 
             response = users_table.get_item(Key={'username': username})
