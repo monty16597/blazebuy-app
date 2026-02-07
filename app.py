@@ -282,5 +282,5 @@ if __name__ == '__main__':
     try:
         app.run(host='0.0.0.0', port=5001, debug=True)
     except Exception as e:
-        # Log any top-level exception and keep process alive (e.g., in a loop)
-        raise Exception('ERROR: Flask app.run crashed; restarting main loop, error: %s', e)
+        # Gracefully handle shutdown signals
+        logger.info("Application is shutting down: %s", e)
