@@ -278,6 +278,13 @@ def page_not_found(e):
     return render_template('404.html'), 404
 
 
+@app.errorhandler(405)
+def handle_method_not_allowed(e):
+    """Handle 405 errors."""
+    logger.warning("405 Method Not Allowed: %s %s", request.method, request.url)
+    return jsonify({'status': 'error', 'message': 'Method Not Allowed'}), 405
+
+
 if __name__ == '__main__':
     try:
         app.run(host='0.0.0.0', port=5001, debug=True)
