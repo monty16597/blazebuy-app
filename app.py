@@ -193,7 +193,7 @@ def shop():
     return render_template('shop.html', items=items)
 
 
-@app.route('/cart')
+@app.route('/cart', methods=['GET', 'POST'])
 @login_required
 def cart():
     return render_template('cart.html')
