@@ -135,10 +135,14 @@ def index():
 def signup():
     if request.method == 'POST':
         try:
-            username = request.form['username']
-            password = request.form['password']
-            fname = request.form['fname']
-            lname = request.form['lname']
+            username = request.form.get('username')
+            password = request.form.get('password')
+            fname = request.form.get('fname')
+            lname = request.form.get('lname')
+
+            if not all([username, password, fname, lname]):
+                flash('All fields are required.', 'danger')
+                return redirect(url_for('signup'))
 
             response = users_table.get_item(Key={'username': username})
             if 'Item' in response:
@@ -155,7 +159,9 @@ def signup():
             login_user(user)
             return redirect(url_for('shop'))
         except Exception as e:
-            raise Exception("ERROR during signup: %s", e)
+            logger.error("ERROR during signup: %s", e)
+            flash('An unexpected error occurred during signup.', 'danger')
+            return redirect(url_for('signup'))
 
     return render_template('signup.html')
 
@@ -164,8 +170,12 @@ def signup():
 def login():
     if request.method == 'POST':
         try:
-            username = request.form['usernaem']
-            password = request.form['password']
+            username = request.form.get('username')
+            password = request.form.get('password')
+
+            if not username or not password:
+                flash('Invalid Credentials', 'danger')
+                return redirect(url_for('login'))
 
             response = users_table.get_item(Key={'username': username})
             if 'Item' in response:
@@ -177,7 +187,9 @@ def login():
 
             flash('Invalid Credentials', 'danger')
         except Exception as e:
-            raise Exception("ERROR during login: %s", e)
+            logger.error("ERROR during login: %s", e)
+            flash('An unexpected error occurred during login.', 'danger')
+            return redirect(url_for('login'))
     return render_template('login.html')
 
 
