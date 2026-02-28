@@ -164,8 +164,14 @@ def signup():
 def login():
     if request.method == 'POST':
         try:
-            username = request.form['usernaem']
-            password = request.form['password']
+            # Safely get username and password, correcting the typo 'usernaem'
+            username = request.form.get('username')
+            password = request.form.get('password')
+
+            # Validate that both fields were submitted
+            if not username or not password:
+                flash('Username and password are required.', 'warning')
+                return redirect(url_for('login'))
 
             response = users_table.get_item(Key={'username': username})
             if 'Item' in response:
@@ -174,10 +180,16 @@ def login():
                     user = User(user_data['username'], user_data['first_name'], user_data['last_name'])
                     login_user(user)
                     return redirect(url_for('shop'))
-
+            
+            # If user not found or password incorrect, flash the same message
             flash('Invalid Credentials', 'danger')
+
         except Exception as e:
-            raise Exception("ERROR during login: %s", e)
+            logger.error("Unhandled exception during login attempt: %s", e)
+            flash('An unexpected error occurred. Please try again.', 'danger')
+            # Redirect back to login to avoid getting stuck
+            return redirect(url_for('login'))
+            
     return render_template('login.html')
 
 
