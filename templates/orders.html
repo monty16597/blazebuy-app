@@ -11,7 +11,7 @@
                 <div>
                     <p class="text-sm text-gray-500">Order ID: <span class="font-mono text-xs text-gray-800">{{
                             order['order_id'] }}</span></p>
-                    <p class="text-xs text-gray-400">{{ order['timestamp'] }}</p>
+                    <p class="text-xs text-gray-400">{{ order.timestamp.strftime('%B %d, %Y at %I:%M %p') if order.timestamp else 'Invalid date' }}</p>
                 </div>
                 <div class="text-lg font-bold text-green-600">
                     Total: ${{ order['total_price'] }}

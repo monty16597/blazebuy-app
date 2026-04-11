@@ -248,9 +248,22 @@ def orders():
     response = orders_table.query(
         KeyConditionExpression=Key('username').eq(current_user.id)
     )
-    orders = response.get('Items', [])
-    orders.sort(key=lambda x: x['timestamp'], reverse=True)
-    return render_template('orders.html', orders=orders)
+    orders_items = response.get('Items', [])
+    
+    # Convert timestamp string to datetime object for formatting
+    for item in orders_items:
+        if 'timestamp' in item and isinstance(item['timestamp'], str):
+            try:
+                item['timestamp'] = datetime.fromisoformat(item['timestamp'])
+            except (ValueError, TypeError):
+                # If parsing fails, we can log it and/or set a default
+                logger.warning("Could not parse timestamp: %s", item['timestamp'])
+                item['timestamp'] = None # Or keep the string
+
+    # Sort by datetime object, handling potential None values
+    orders_items.sort(key=lambda x: x.get('timestamp') or datetime.min, reverse=True)
+
+    return render_template('orders.html', orders=orders_items)
 
 
 @app.route('/logout')
