@@ -245,12 +245,21 @@ def checkout():
 @app.route('/orders')
 @login_required
 def orders():
-    response = orders_table.query(
-        KeyConditionExpression=Key('username').eq(current_user.id)
-    )
-    orders = response.get('Items', [])
-    orders.sort(key=lambda x: x['timestamp'], reverse=True)
-    return render_template('orders.html', orders=orders)
+    try:
+        response = orders_table.query(
+            KeyConditionExpression=Key('username').eq(current_user.id)
+        )
+        orders = response.get('Items', [])
+
+        # Convert timestamp string to datetime object for proper sorting and formatting
+        for order in orders:
+            if isinstance(order.get('timestamp'), str):
+                order['timestamp'] = datetime.fromisoformat(order['timestamp'])
+
+        orders.sort(key=lambda x: x['timestamp'], reverse=True)
+        return render_template('orders.html', orders=orders)
+    except Exception as e:
+        raise Exception("ERROR fetching orders: %s", e)
 
 
 @app.route('/logout')
