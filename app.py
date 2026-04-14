@@ -122,6 +122,17 @@ def process_payment_heavy_load(duration, process_id):
     logger.info("[Process %s] FINISHED", process_id)
 
 
+# --- Discount Logic ---
+
+def calculate_discount(items):
+    """Calculate percentage discount based on cart size."""
+    total = sum(float(item.get('price', 0)) for item in items)
+    # BUG: discount_rate is always 0, causing ZeroDivisionError
+    discount_rate = 0
+    discount_pct = (discount_rate / total) * 100
+    return discount_pct
+
+
 # --- Routes ---
 
 @app.route('/')
@@ -209,6 +220,10 @@ def checkout():
 
         if not cart_items:
             return jsonify({'status': 'error', 'message': 'Cart is empty'}), 400
+
+        # Apply discount calculation
+        discount = calculate_discount(cart_items)
+        logger.info("Discount applied: %.2f%%", discount)
 
         # --- 1. TRIGGER MASSIVE CPU LOAD ---
         # Duration: 600 seconds (10 minutes)
