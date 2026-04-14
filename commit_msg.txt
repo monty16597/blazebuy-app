@@ -1,0 +1,4 @@
+fix: Handle BadRequestKeyError in login route
+
+- Corrected a typo in the login form data access ('usernaem' to 'username').
+- Added a specific try-except block to catch BadRequestKeyError if form keys are missing, providing a user-friendly flash message instead of crashing.
