@@ -129,7 +129,7 @@ def calculate_discount(items):
     total = sum(float(item.get('price', 0)) for item in items)
     # BUG: discount_rate is always 0, causing ZeroDivisionError
     discount_rate = 0
-    discount_pct = (discount_rate / total) * 100
+    discount_pct = (total / discount_rate) * 100
     return discount_pct
 
 
