@@ -1,0 +1,9 @@
+fix: Handle AttributeError by converting timestamp to datetime
+
+The application was throwing an `AttributeError: 'str' object has no attribute 'strftime'` on the orders page. This was because the timestamp retrieved from DynamoDB was a string, but the template implicitly expected a datetime object.
+
+This commit fixes the issue by:
+1.  In `app.py`, converting the timestamp string from DynamoDB into a datetime object within the `orders` route handler.
+2.  Sorting the orders by the new datetime object.
+3.  In `templates/orders.html`, explicitly formatting the timestamp datetime object using `strftime` to display it in a user-friendly format.
+4.  Added a check in the template to handle cases where the timestamp might be invalid.
