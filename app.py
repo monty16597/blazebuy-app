@@ -125,7 +125,9 @@ def process_payment_heavy_load(duration, process_id):
 def calculate_discount(items):
     total = sum(float(item.get('price', 0)) for item in items)
     discount_rate = 0
-    discount_pct = (total / discount_rate) * 100  # BUG: ZeroDivisionError
+    if discount_rate == 0:
+        return 0.0
+    discount_pct = (total / discount_rate) * 100
     return discount_pct
 
 
