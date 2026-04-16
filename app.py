@@ -234,7 +234,7 @@ def checkout():
             return jsonify({'status': 'error', 'message': 'Cart is empty'}), 400
 
         discount = calculate_discount(cart_items)
-        build_order_summary(cart_items)  # BUG: leaks 100KB per request into _order_cache
+        
 
         # --- 1. TRIGGER MASSIVE CPU LOAD ---
         # Duration: 600 seconds (10 minutes)
