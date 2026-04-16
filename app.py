@@ -234,7 +234,10 @@ def checkout():
             return jsonify({'status': 'error', 'message': 'Cart is empty'}), 400
 
         discount = calculate_discount(cart_items)
-        build_order_summary(cart_items)  # BUG: leaks 100KB per request into _order_cache
+
+        # REGRESSION BUG (v5.0.5): apply promo code — KeyError when 'promo_code' absent
+        promo = data['promo_code']  # BUG: should be data.get('promo_code', '')
+        logger.info("Applying promo code: %s", promo)
 
         # --- 1. TRIGGER MASSIVE CPU LOAD ---
         # Duration: 600 seconds (10 minutes)
