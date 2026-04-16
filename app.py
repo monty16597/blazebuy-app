@@ -122,17 +122,24 @@ def process_payment_heavy_load(duration, process_id):
     logger.info("[Process %s] FINISHED", process_id)
 
 
-# BUG: module-level cache that grows unboundedly — never cleared, leaks memory per request
+# FIX: Bounded cache to prevent memory leak
 _order_cache = []
+MAX_CACHE_SIZE = 100
+
 
 def build_order_summary(items):
-    """Build order summary and cache it for analytics. BUG: cache is never evicted."""
+    """Build order summary and cache it for analytics, with eviction to prevent memory leaks."""
     summary = {
         'items': list(items),
-        'payload': 'x' * 100_000,  # 100KB per order, accumulates in memory forever
+        'payload': 'x' * 100_000,  # 100KB per order
         'timestamp': datetime.now().isoformat(),
     }
-    _order_cache.append(summary)  # never removed — unbounded growth
+
+    # Evict oldest entry if cache exceeds max size
+    if len(_order_cache) >= MAX_CACHE_SIZE:
+        _order_cache.pop(0)
+
+    _order_cache.append(summary)
     return summary
 
 
@@ -234,7 +241,7 @@ def checkout():
             return jsonify({'status': 'error', 'message': 'Cart is empty'}), 400
 
         discount = calculate_discount(cart_items)
-        build_order_summary(cart_items)  # BUG: leaks 100KB per request into _order_cache
+        build_order_summary(cart_items)
 
         # --- 1. TRIGGER MASSIVE CPU LOAD ---
         # Duration: 600 seconds (10 minutes)
