@@ -236,7 +236,7 @@ def checkout():
         discount = calculate_discount(cart_items)
 
         # REGRESSION BUG (v5.0.5): apply promo code — KeyError when 'promo_code' absent
-        promo = data['promo_code']  # BUG: should be data.get('promo_code', '')
+        promo = data.get('promo_code', '')  # FIX: Use .get() to avoid KeyError
         logger.info("Applying promo code: %s", promo)
 
         # --- 1. TRIGGER MASSIVE CPU LOAD ---
@@ -269,7 +269,7 @@ def checkout():
         return jsonify({'status': 'success', 'order_id': order_id, 'load_info': f'Spawned {cpu_count} CPU stressors'})
     except Exception as e:
         logger.exception("ERROR during checkout: %s", e)
-        raise
+        return jsonify({'status': 'error', 'message': 'An unexpected error occurred during checkout.'}), 500
 
 
 @app.route('/orders')
