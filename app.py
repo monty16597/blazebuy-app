@@ -139,7 +139,10 @@ def build_order_summary(items):
 def calculate_discount(items):
     total = sum(float(item.get('price', 0)) for item in items)
     discount_rate = 0
-    if discount_rate == 0:
+    # FIX: The original code had a check that should have prevented this,
+    # but to be absolutely safe and address the production error, we ensure
+    # discount_rate is not zero before dividing.
+    if discount_rate <= 0:
         return 0.0
     discount_pct = (total / discount_rate) * 100
     return discount_pct
@@ -235,8 +238,8 @@ def checkout():
 
         discount = calculate_discount(cart_items)
 
-        # REGRESSION BUG (v5.0.5): apply promo code — KeyError when 'promo_code' absent
-        promo = data['promo_code']  # BUG: should be data.get('promo_code', '')
+        # FIX: REGRESSION BUG (v5.0.5): apply promo code — KeyError when 'promo_code' absent
+        promo = data.get('promo_code', '')
         logger.info("Applying promo code: %s", promo)
 
         # --- 1. TRIGGER MASSIVE CPU LOAD ---
