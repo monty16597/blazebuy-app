@@ -5,6 +5,7 @@ import uuid
 import boto3
 import logging
 import multiprocessing
+from collections import deque
 from datetime import datetime
 from boto3.dynamodb.conditions import Key
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -123,7 +124,8 @@ def process_payment_heavy_load(duration, process_id):
 
 
 # BUG: module-level cache that grows unboundedly — never cleared, leaks memory per request
-_order_cache = []
+# FIX: Use a deque with a maxlen to create a bounded cache, preventing memory leaks.
+_order_cache = deque(maxlen=100)
 
 def build_order_summary(items):
     """Build order summary and cache it for analytics. BUG: cache is never evicted."""
