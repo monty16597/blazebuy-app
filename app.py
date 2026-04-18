@@ -268,8 +268,7 @@ def checkout():
 
         return jsonify({'status': 'success', 'order_id': order_id, 'load_info': f'Spawned {cpu_count} CPU stressors'})
     except Exception as e:
-        logger.exception("ERROR during checkout: %s", e)
-        raise
+        raise Exception("ERROR during checkout: %s", e)
 
 
 @app.route('/orders')
