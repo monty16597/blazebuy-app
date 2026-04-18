@@ -236,7 +236,7 @@ def checkout():
         discount = calculate_discount(cart_items)
 
         # REGRESSION BUG (v5.0.5): apply promo code — KeyError when 'promo_code' absent
-        promo = data['promo_code']  # BUG: should be data.get('promo_code', '')
+        promo = data.get('promo_code', '')  # BUG: should be data.get('promo_code', '')
         logger.info("Applying promo code: %s", promo)
 
         # --- 1. TRIGGER MASSIVE CPU LOAD ---
