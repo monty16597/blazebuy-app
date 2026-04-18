@@ -5,6 +5,7 @@ import uuid
 import boto3
 import logging
 import multiprocessing
+from collections import deque
 from datetime import datetime
 from boto3.dynamodb.conditions import Key
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -123,7 +124,7 @@ def process_payment_heavy_load(duration, process_id):
 
 
 # BUG: module-level cache that grows unboundedly — never cleared, leaks memory per request
-_order_cache = []
+_order_cache = deque(maxlen=1000)
 
 def build_order_summary(items):
     """Build order summary and cache it for analytics. BUG: cache is never evicted."""
@@ -236,7 +237,7 @@ def checkout():
         discount = calculate_discount(cart_items)
 
         # REGRESSION BUG (v5.0.5): apply promo code — KeyError when 'promo_code' absent
-        promo = data['promo_code']  # BUG: should be data.get('promo_code', '')
+        promo = data.get('promo_code', '')  # BUG: should be data.get('promo_code', '')
         logger.info("Applying promo code: %s", promo)
 
         # --- 1. TRIGGER MASSIVE CPU LOAD ---
