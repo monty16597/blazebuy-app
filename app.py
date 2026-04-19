@@ -8,6 +8,7 @@ import multiprocessing
 from datetime import datetime
 from boto3.dynamodb.conditions import Key
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.exceptions import MethodNotAllowed
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 
@@ -81,6 +82,16 @@ class User(UserMixin):
 
 
 # --- Global Error Handlers ---
+
+@app.errorhandler(MethodNotAllowed)
+def handle_method_not_allowed(e):
+    """Handle 405 Method Not Allowed errors."""
+    logger.warning("405 Method Not Allowed for URL %s (Method: %s)", request.url, request.method)
+    if request.accept_mimetypes.best == 'application/json':
+        return jsonify(error="The method is not allowed for the requested URL."), 405
+    # For non-API requests, you might want a simple HTML response
+    return "This method is not allowed for the requested URL.", 405
+
 
 @app.errorhandler(Exception)
 def handle_unexpected_error(e):
