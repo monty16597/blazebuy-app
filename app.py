@@ -137,10 +137,16 @@ def build_order_summary(items):
 
 
 def calculate_discount(items):
+    """Calculates a discount percentage, safely handling a zero discount rate."""
     total = sum(float(item.get('price', 0)) for item in items)
+    
+    # This is currently hardcoded, but might be dynamic in the future.
     discount_rate = 0
+    
+    # Prevent ZeroDivisionError if the discount rate is 0.
     if discount_rate == 0:
         return 0.0
+    
     discount_pct = (total / discount_rate) * 100
     return discount_pct
 
