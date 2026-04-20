@@ -216,9 +216,11 @@ def shop():
     return render_template('shop.html', items=items)
 
 
-@app.route('/cart')
+@app.route('/cart', methods=['GET', 'POST'])
 @login_required
 def cart():
+    if request.method == 'POST':
+        logger.info("POST request received for /cart endpoint.")
     return render_template('cart.html')
 
 
