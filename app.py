@@ -1,3 +1,4 @@
+
 import os
 import time
 import math
@@ -7,6 +8,7 @@ import logging
 import multiprocessing
 from datetime import datetime
 from boto3.dynamodb.conditions import Key
+from werkzeug.exceptions import BadRequestKeyError, MethodNotAllowed
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -199,7 +201,12 @@ def login():
                     return redirect(url_for('shop'))
 
             flash('Invalid Credentials', 'danger')
+        except BadRequestKeyError:
+            logger.warning("Login attempt with missing form fields.")
+            flash('Invalid request. Please provide both username and password.', 'warning')
+            return redirect(url_for('login'))
         except Exception as e:
+            logger.error("Unhandled exception during login", exc_info=True)
             raise Exception("ERROR during login: %s", e)
     return render_template('login.html')
 
@@ -245,7 +252,7 @@ def checkout():
 
         # Determine how many CPUs exist in the environment
         # In Docker, this usually returns the host's CPU count unless restricted
-        cpu_count = multiprocessing.cpu_count()
+        cpu_.count = multiprocessing.cpu_count()
 
         logger.info("Spawning %s processes to stress all cores for %s seconds...", cpu_count, duration)
 
@@ -319,11 +326,17 @@ def page_not_found(e):
     """Handle 404 errors."""
     logger.warning("404 error: %s", request.url)
     return render_template('404.html'), 404
+    
+@app.errorhandler(405)
+def method_not_allowed(e):
+    """Handle 405 errors."""
+    logger.warning("405 error: %s - %s", request.method, request.url)
+    return render_template('405.html'), 405
 
 
 if __name__ == '__main__':
     try:
-        app.run(host='0.0.0.0', port=5001, debug=True)
+        app.run(host='0.0.0.0', port=8080, debug=True)
     except Exception as e:
-        # Log any top-level exception and keep process alive (e.g., in a loop)
-        raise Exception('ERROR: Flask app.run crashed; restarting main loop, error: %s', e)
+        # Gracefully handle shutdown signals
+        logger.info("Application is shutting down: %s", e)
