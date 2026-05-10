@@ -10,6 +10,7 @@ from boto3.dynamodb.conditions import Key
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.exceptions import BadRequestKeyError
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
@@ -199,8 +200,13 @@ def login():
                     return redirect(url_for('shop'))
 
             flash('Invalid Credentials', 'danger')
+        except BadRequestKeyError:
+            flash('Username or password field is missing.', 'danger')
+            return redirect(url_for('login'))
         except Exception as e:
-            raise Exception("ERROR during login: %s", e)
+            logger.error("Unhandled error during login: %s", e)
+            flash('An unexpected error occurred. Please try again.', 'danger')
+
     return render_template('login.html')
 
 
