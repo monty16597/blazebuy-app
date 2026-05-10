@@ -177,8 +177,14 @@ def signup():
             user = User(username, fname, lname)
             login_user(user)
             return redirect(url_for('shop'))
+        except KeyError:
+            flash('Missing required fields in signup form.', 'danger')
+            logger.error("Signup failed due to missing form fields.")
+            return redirect(url_for('signup'))
         except Exception as e:
-            raise Exception("ERROR during signup: %s", e)
+            logger.exception("ERROR during signup: %s", e)
+            flash('An unexpected error occurred during signup.', 'danger')
+            return redirect(url_for('signup'))
 
     return render_template('signup.html')
 
@@ -199,8 +205,16 @@ def login():
                     return redirect(url_for('shop'))
 
             flash('Invalid Credentials', 'danger')
+            return redirect(url_for('login'))
+        except KeyError:
+            flash('Missing username or password.', 'danger')
+            logger.error("Login failed due to missing form fields.")
+            return redirect(url_for('login'))
         except Exception as e:
-            raise Exception("ERROR during login: %s", e)
+            logger.exception("ERROR during login: %s", e)
+            flash('An unexpected error occurred during login.', 'danger')
+            return redirect(url_for('login'))
+            
     return render_template('login.html')
 
 
