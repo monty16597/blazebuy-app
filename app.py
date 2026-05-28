@@ -122,17 +122,23 @@ def process_payment_heavy_load(duration, process_id):
     logger.info("[Process %s] FINISHED", process_id)
 
 
-# BUG: module-level cache that grows unboundedly — never cleared, leaks memory per request
+# Bounded cache to prevent memory leaks
 _order_cache = []
+MAX_CACHE_SIZE = 1000
 
 def build_order_summary(items):
-    """Build order summary and cache it for analytics. BUG: cache is never evicted."""
+    """Build order summary and cache it for analytics."""
     summary = {
         'items': list(items),
-        'payload': 'x' * 100_000,  # 100KB per order, accumulates in memory forever
+        'payload': 'x' * 100_000,  # 100KB per order
         'timestamp': datetime.now().isoformat(),
     }
-    _order_cache.append(summary)  # never removed — unbounded growth
+    _order_cache.append(summary)
+
+    # Evict old entries if cache exceeds max size to prevent memory leak
+    if len(_order_cache) > MAX_CACHE_SIZE:
+        _order_cache.pop(0)
+
     return summary
 
 
@@ -260,7 +266,7 @@ def checkout():
 
         orders_table.put_item(Item={
             'username': current_user.id,
-            'order_id': order_id,
+.            'order_id': order_id,
             'timestamp': timestamp,
             'items': cart_items,
             'total_price': str(total_price)
