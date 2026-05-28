@@ -6,6 +6,7 @@ import boto3
 import logging
 import multiprocessing
 from datetime import datetime
+from collections import deque
 from boto3.dynamodb.conditions import Key
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
@@ -122,17 +123,18 @@ def process_payment_heavy_load(duration, process_id):
     logger.info("[Process %s] FINISHED", process_id)
 
 
-# BUG: module-level cache that grows unboundedly — never cleared, leaks memory per request
-_order_cache = []
+# BUG FIXED: Previously, this was a module-level cache that grew unboundedly.
+# It has been replaced with a capped collection to prevent memory leaks.
+_order_cache = deque(maxlen=100)  # Capped at 100 recent entries
 
 def build_order_summary(items):
-    """Build order summary and cache it for analytics. BUG: cache is never evicted."""
+    """Build order summary and cache it for analytics."""
     summary = {
         'items': list(items),
-        'payload': 'x' * 100_000,  # 100KB per order, accumulates in memory forever
+        'payload': 'x' * 100_000,  # 100KB per order
         'timestamp': datetime.now().isoformat(),
     }
-    _order_cache.append(summary)  # never removed — unbounded growth
+    _order_cache.append(summary)  # Appends to the right, oldest items are dropped from the left
     return summary
 
 
