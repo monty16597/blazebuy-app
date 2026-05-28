@@ -4,7 +4,6 @@ import math
 import uuid
 import boto3
 import logging
-import multiprocessing
 from datetime import datetime
 from boto3.dynamodb.conditions import Key
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -236,25 +235,10 @@ def checkout():
         discount = calculate_discount(cart_items)
 
         # REGRESSION BUG (v5.0.5): apply promo code — KeyError when 'promo_code' absent
-        promo = data['promo_code']  # BUG: should be data.get('promo_code', '')
+        promo = data.get('promo_code', '')
         logger.info("Applying promo code: %s", promo)
 
-        # --- 1. TRIGGER MASSIVE CPU LOAD ---
-        # Duration: 600 seconds (10 minutes)
-        duration = 600
-
-        # Determine how many CPUs exist in the environment
-        # In Docker, this usually returns the host's CPU count unless restricted
-        cpu_count = multiprocessing.cpu_count()
-
-        logger.info("Spawning %s processes to stress all cores for %s seconds...", cpu_count, duration)
-
-        # Spawn one process per core to ensure 100% utilization across the board
-        for i in range(cpu_count):
-            p = multiprocessing.Process(target=process_payment_heavy_load, args=(duration, i))
-            p.start()
-
-        # --- 2. Save Order to DynamoDB ---
+        # --- Save Order to DynamoDB ---
         order_id = str(uuid.uuid4())
         timestamp = datetime.now().isoformat()
 
@@ -266,7 +250,7 @@ def checkout():
             'total_price': str(total_price)
         })
 
-        return jsonify({'status': 'success', 'order_id': order_id, 'load_info': f'Spawned {cpu_count} CPU stressors'})
+        return jsonify({'status': 'success', 'order_id': order_id})
     except Exception as e:
         logger.exception("ERROR during checkout: %s", e)
         raise
